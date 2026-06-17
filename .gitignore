@@ -1,0 +1,70 @@
+# SRS Section 15.9 — never commit these
+
+# Secrets & keys
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.mobileprovision
+
+# User data — stays on user machine only
+.atlas/
+~/.atlas/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.tox/
+
+# Runtime databases and biometric data
+*.db
+*.sqlite
+chroma/
+*.npy
+
+# Large model files
+models/
+*.gguf
+*.bin
+*.pt
+*.safetensors
+
+# Logs and crash reports
+*.log
+crash_*.json
+
+# Installer build outputs
+installer/build/
+installer/dist/
+*.exe
+*.dmg
+*.deb
+*.AppImage
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/

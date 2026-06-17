@@ -1,0 +1,17 @@
+# ATLAS Voice Persona Manifest — SRS Appendix 14.3
+id: rex
+name: Rex
+engine: kokoro
+kokoro_voice_id: am_adam
+elevenlabs_voice_id: null
+gender: male
+accent: en-US
+style: "Casual, upbeat, fast-paced"
+language: English (US)
+language_code: en-US
+preview_text: "Hello, I am Rex. How can I help you today?"
+preview_audio: rex_preview.mp3
+premium: false
+author: ATLAS Core Team
+version: 1.0.0
+added_in: v1.0.0

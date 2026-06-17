@@ -1,0 +1,17 @@
+# ATLAS Voice Persona Manifest — SRS Appendix 14.3
+id: zara
+name: Zara
+engine: kokoro
+kokoro_voice_id: af_nicole
+elevenlabs_voice_id: null
+gender: female
+accent: en-IN
+style: "Professional, neutral, Indian-accented English"
+language: Hindi-English
+language_code: en-IN
+preview_text: "Hello, I am Zara. How can I help you today?"
+preview_audio: zara_preview.mp3
+premium: false
+author: ATLAS Core Team
+version: 1.0.0
+added_in: v1.0.0

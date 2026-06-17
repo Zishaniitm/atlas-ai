@@ -1,0 +1,17 @@
+# ATLAS Voice Persona Manifest — SRS Appendix 14.3
+id: aria
+name: Aria
+engine: kokoro
+kokoro_voice_id: af_bella
+elevenlabs_voice_id: null
+gender: female
+accent: en-AU
+style: "Energetic, crisp, modern"
+language: English (AU)
+language_code: en-AU
+preview_text: "Hello, I am Aria. How can I help you today?"
+preview_audio: aria_preview.mp3
+premium: false
+author: ATLAS Core Team
+version: 1.0.0
+added_in: v1.0.0

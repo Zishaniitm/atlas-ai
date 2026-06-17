@@ -1,0 +1,17 @@
+# ATLAS Voice Persona Manifest — SRS Appendix 14.3
+id: sage
+name: Sage
+engine: kokoro
+kokoro_voice_id: af_sarah
+elevenlabs_voice_id: null
+gender: neutral
+accent: en-US
+style: "Soft, thoughtful, academic"
+language: English (US)
+language_code: en-US
+preview_text: "Hello, I am Sage. How can I help you today?"
+preview_audio: sage_preview.mp3
+premium: false
+author: ATLAS Core Team
+version: 1.0.0
+added_in: v1.0.0
