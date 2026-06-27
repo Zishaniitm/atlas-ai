@@ -6,7 +6,7 @@ kokoro_voice_id: af_nicole
 elevenlabs_voice_id: null
 gender: female
 accent: en-IN
-style: "Professional, neutral, Indian-accented English"
+style: "Professional, Indian-accented English"
 language: Hindi-English
 language_code: en-IN
 preview_text: "Hello, I am Zara. How can I help you today?"

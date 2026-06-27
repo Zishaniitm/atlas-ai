@@ -1,59 +1,56 @@
-# ATLAS defaults.yaml — SRS Appendix 14.2 (BUG-04 fix: auth section included)
-# User overrides live in ~/.atlas/config/user.yaml and are merged on top.
-# DO NOT store secrets here. API keys go in the OS keychain only (NFR-015).
-
+# ATLAS defaults.yaml — SRS Appendix 14.2 (BUG-04: auth section present)
+# Never store secrets here — API keys go in OS keychain only (NFR-015).
 atlas:
 
   llm:
     provider: openai          # openai | anthropic | ollama
-    model: gpt-4o             # model string per provider
+    model: gpt-4o
     temperature: 0.7
     max_tokens: 2048
-    max_iterations: 10        # FR-115: agent loop ceiling
+    max_iterations: 10        # FR-115
 
   voice:
-    stt_engine: whisper       # whisper (local, default)
+    stt_engine: whisper
     whisper_model: base       # tiny | base | small | medium | large-v3
-    tts_engine: kokoro        # kokoro | elevenlabs   (BUG-02: NOT coqui)
-    persona: atlas_default    # persona ID matching a .atlasvoice file
-    speaking_rate: 1.0        # FR-016: 0.5 to 2.0
+    tts_engine: kokoro        # BUG-02: NOT coqui
+    persona: atlas_default
+    speaking_rate: 1.0        # FR-016: 0.5–2.0
     pitch_offset: 0           # FR-016: -12 to +12 semitones
-    wake_word: "hey atlas"    # FR-007: configurable
-    mic_device_index: null    # null = system default
+    wake_word: "hey atlas"
+    mic_device_index: null
 
   memory:
-    working_window: 20              # messages kept in LLM context window
+    working_window: 20
     vector_db_path: "~/.atlas/memory/chroma"
     sqlite_path: "~/.atlas/data/atlas.db"
-    async_writes: true              # BUG-09 fix: ALWAYS true — never block pipeline
+    async_writes: true        # BUG-09: ALWAYS true
 
-  # BUG-04 fix: auth section was missing from previous versions
-  auth:
-    primary_method: pin             # pin | voice_print | face | hello | fido2
+  auth:                       # BUG-04: was missing in v1 — now always present
+    primary_method: pin       # pin | voice_print | face | hello | fido2
     fallback_method: pin
     two_factor_enabled: false
-    voice_print_threshold: 0.92    # FR-081, NFR-022 — cosine similarity minimum
-    face_distance_threshold: 0.45  # FR-083 — InsightFace euclidean distance max
-    rate_limit_attempts: 5         # FR-096 — failures before lockout
-    rate_limit_lockout_sec: 30     # FR-096 — lockout duration in seconds
-    full_lockout_after: 10         # SRS 14.2 — attempts before full lock + alert
-    tier2_risk_levels:             # FR-090 — skills at these levels trigger re-auth
+    voice_print_threshold: 0.92
+    face_distance_threshold: 0.45
+    rate_limit_attempts: 5
+    rate_limit_lockout_sec: 30
+    full_lockout_after: 10
+    tier2_risk_levels:
       - critical
       - high
-    tier3_enabled: false           # FR-093 — passive presence monitoring (opt-in P3)
+    tier3_enabled: false
     tier3_check_interval_sec: 30
     biometric_data_path: "~/.atlas/security"
 
-  ui:
-    theme: dark                    # dark | light | high-contrast | auto
-    hud_opacity: 0.95
-    always_on_top: false
-    font_scale: 1.0                # FR-109: 0.8 to 1.5
-    language: en_US                # FR-110: en_US | hi_IN | es_ES
-
   api:
     host: "127.0.0.1"
-    port: 7770                     # SRS 4.2.4
+    port: 7770
+
+  ui:
+    theme: dark
+    hud_opacity: 0.95
+    always_on_top: false
+    font_scale: 1.0
+    language: en_US
 
   skills:
     enabled:
@@ -70,20 +67,20 @@ atlas:
       - clipboard
       - screenshot_ocr
       - volume_control
-    confirm_destructive: true      # FR-091: confirm prompt for critical/high skills
+    confirm_destructive: true
 
   notifications:
-    desktop_toasts: true           # FR-098
-    proactive_reminders: true      # FR-099
+    desktop_toasts: true
+    proactive_reminders: true
     reminder_lead_time_min: 15
 
   telemetry:
-    crash_reports_local: true      # FR-102: always write local crash.json
-    sentry_enabled: false          # FR-104: opt-in only — off by default
-    log_retention_days: 30         # FR-106: auto-delete logs older than this
+    crash_reports_local: true
+    sentry_enabled: false
+    log_retention_days: 30
     log_dir: "~/.atlas/logs"
 
   updates:
-    auto_check: true               # check GitHub Releases API on startup
-    update_channel: stable         # stable | beta | nightly
-    github_repo: "atlas-ai/atlas-ai"  # BUG-03: update-checker target (NOT PyUpdater)
+    auto_check: true
+    update_channel: stable
+    github_repo: "atlas-ai/atlas-ai"  # BUG-03: update-checker target

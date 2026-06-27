@@ -6,7 +6,7 @@ kokoro_voice_id: am_michael
 elevenlabs_voice_id: null
 gender: neutral
 accent: en-US
-style: "Minimal, robotic, sci-fi style"
+style: "Minimal, robotic, sci-fi"
 language: English (US)
 language_code: en-US
 preview_text: "Hello, I am Echo. How can I help you today?"

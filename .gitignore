@@ -1,6 +1,6 @@
 # SRS Section 15.9 — never commit these
 
-# Secrets & keys
+# Secrets
 .env
 .env.*
 *.pem
@@ -8,7 +8,7 @@
 *.p12
 *.mobileprovision
 
-# User data — stays on user machine only
+# User data (stays on user machine only)
 .atlas/
 ~/.atlas/
 
@@ -16,20 +16,18 @@
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-.Python
 *.egg-info/
 dist/
 build/
 .eggs/
 
-# Virtual environments
+# Virtual envs
 .venv/
 venv/
 env/
 .tox/
 
-# Runtime databases and biometric data
+# Runtime data / biometrics
 *.db
 *.sqlite
 chroma/
@@ -58,7 +56,6 @@ installer/dist/
 .vscode/
 .idea/
 *.swp
-*.swo
 
 # OS
 .DS_Store

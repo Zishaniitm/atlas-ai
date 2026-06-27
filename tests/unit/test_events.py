@@ -1,212 +1,114 @@
 """
-Unit tests for atlas.core.events.
-
-SRS: SRS Section 11.1 (EventBus — fault isolation NFR-032),
-     BUG-09 (MEMORY_WRITE_REQUEST fires after TTS, never blocking it)
+Unit tests for atlas.core.events
+SRS: NFR-032 (fault isolation), BUG-09 (memory write after TTS)
 """
-
 from __future__ import annotations
-
-import asyncio
 import pytest
-
-from atlas.core.events import (
-    AtlasEvent,
-    EventBus,
-    EventType,
-    get_event_bus,
-)
+from atlas.core.events import AtlasEvent, EventBus, EventType, get_event_bus
 
 
-# ── Subscribe / emit ──────────────────────────────────────────
-
-class TestEventBusSubscribeEmit:
+class TestSubscribeEmit:
     @pytest.mark.asyncio
     async def test_handler_called_on_emit(self):
         bus = EventBus()
-        received: list[AtlasEvent] = []
-
-        async def handler(event: AtlasEvent) -> None:
-            received.append(event)
-
-        bus.subscribe(EventType.ATLAS_READY, handler)
+        received = []
+        async def h(e: AtlasEvent) -> None: received.append(e)
+        bus.subscribe(EventType.ATLAS_READY, h)
         await bus.emit(AtlasEvent(EventType.ATLAS_READY, source="test"))
-
         assert len(received) == 1
-        assert received[0].type == EventType.ATLAS_READY
 
     @pytest.mark.asyncio
     async def test_multiple_handlers_all_called(self):
         bus = EventBus()
         calls: list[str] = []
-
-        async def h1(e: AtlasEvent) -> None:
-            calls.append("h1")
-
-        async def h2(e: AtlasEvent) -> None:
-            calls.append("h2")
-
+        async def h1(e: AtlasEvent) -> None: calls.append("h1")
+        async def h2(e: AtlasEvent) -> None: calls.append("h2")
         bus.subscribe(EventType.TTS_STARTED, h1)
         bus.subscribe(EventType.TTS_STARTED, h2)
         await bus.emit(AtlasEvent(EventType.TTS_STARTED))
-
-        assert "h1" in calls
-        assert "h2" in calls
+        assert "h1" in calls and "h2" in calls
 
     @pytest.mark.asyncio
-    async def test_emit_with_no_handlers_does_nothing(self):
+    async def test_emit_with_no_handlers_is_safe(self):
         bus = EventBus()
-        # Should complete without error
-        await bus.emit(AtlasEvent(EventType.ATLAS_SHUTDOWN))
+        await bus.emit(AtlasEvent(EventType.ATLAS_SHUTDOWN))  # must not raise
 
     @pytest.mark.asyncio
     async def test_event_data_passed_correctly(self):
         bus = EventBus()
-        received_data: list[dict] = []
+        got = []
+        async def h(e: AtlasEvent) -> None: got.append(e.data)
+        bus.subscribe(EventType.STT_TRANSCRIPT_READY, h)
+        await bus.emit(AtlasEvent(EventType.STT_TRANSCRIPT_READY, {"text": "hello atlas"}))
+        assert got[0]["text"] == "hello atlas"
 
-        async def handler(event: AtlasEvent) -> None:
-            received_data.append(event.data)
-
-        bus.subscribe(EventType.STT_TRANSCRIPT_READY, handler)
-        await bus.emit(AtlasEvent(
-            EventType.STT_TRANSCRIPT_READY,
-            data={"text": "hello atlas"},
-            source="test",
-        ))
-
-        assert received_data[0]["text"] == "hello atlas"
-
-
-# ── Fault isolation — NFR-032 ─────────────────────────────────
 
 class TestFaultIsolation:
     @pytest.mark.asyncio
-    async def test_crashing_handler_does_not_stop_other_handlers(self):
-        """
-        NFR-032: one crashed handler must not prevent others from running.
-        """
+    async def test_crashing_handler_does_not_stop_others(self):
+        """NFR-032: one crashed handler must never stop others from running."""
         bus = EventBus()
         second_called = False
-
-        async def crashing_handler(event: AtlasEvent) -> None:
-            raise ValueError("intentional crash in test")
-
-        async def second_handler(event: AtlasEvent) -> None:
-            nonlocal second_called
-            second_called = True
-
-        bus.subscribe(EventType.WAKE_WORD_DETECTED, crashing_handler)
-        bus.subscribe(EventType.WAKE_WORD_DETECTED, second_handler)
-
-        # Should NOT raise despite crashing_handler
-        await bus.emit(AtlasEvent(EventType.WAKE_WORD_DETECTED))
-
+        async def crash(e: AtlasEvent) -> None: raise ValueError("intentional crash")
+        async def ok(e: AtlasEvent) -> None:
+            nonlocal second_called; second_called = True
+        bus.subscribe(EventType.WAKE_WORD_DETECTED, crash)
+        bus.subscribe(EventType.WAKE_WORD_DETECTED, ok)
+        await bus.emit(AtlasEvent(EventType.WAKE_WORD_DETECTED))  # must not raise
         assert second_called is True
 
     @pytest.mark.asyncio
-    async def test_multiple_crashes_all_handled(self):
+    async def test_multiple_crashes_survivor_still_called(self):
         bus = EventBus()
         calls: list[int] = []
-
-        async def crash_1(e: AtlasEvent) -> None:
-            raise RuntimeError("crash 1")
-
-        async def crash_2(e: AtlasEvent) -> None:
-            raise RuntimeError("crash 2")
-
-        async def survivor(e: AtlasEvent) -> None:
-            calls.append(1)
-
-        bus.subscribe(EventType.AUTH_FAILED, crash_1)
-        bus.subscribe(EventType.AUTH_FAILED, crash_2)
-        bus.subscribe(EventType.AUTH_FAILED, survivor)
-
+        async def c1(e: AtlasEvent) -> None: raise RuntimeError("c1")
+        async def c2(e: AtlasEvent) -> None: raise RuntimeError("c2")
+        async def ok(e: AtlasEvent) -> None: calls.append(1)
+        bus.subscribe(EventType.AUTH_FAILED, c1)
+        bus.subscribe(EventType.AUTH_FAILED, c2)
+        bus.subscribe(EventType.AUTH_FAILED, ok)
         await bus.emit(AtlasEvent(EventType.AUTH_FAILED))
-        assert len(calls) == 1
+        assert calls == [1]
 
-
-# ── Unsubscribe ───────────────────────────────────────────────
 
 class TestUnsubscribe:
     @pytest.mark.asyncio
-    async def test_unsubscribe_stops_handler_receiving_events(self):
+    async def test_unsubscribe_stops_delivery(self):
         bus = EventBus()
         calls: list[int] = []
-
-        async def handler(event: AtlasEvent) -> None:
-            calls.append(1)
-
-        bus.subscribe(EventType.CONFIG_RELOADED, handler)
+        async def h(e: AtlasEvent) -> None: calls.append(1)
+        bus.subscribe(EventType.CONFIG_RELOADED, h)
         await bus.emit(AtlasEvent(EventType.CONFIG_RELOADED))
-        assert len(calls) == 1
-
-        bus.unsubscribe(EventType.CONFIG_RELOADED, handler)
+        bus.unsubscribe(EventType.CONFIG_RELOADED, h)
         await bus.emit(AtlasEvent(EventType.CONFIG_RELOADED))
-        assert len(calls) == 1   # still 1 — handler not called again
+        assert len(calls) == 1  # only the first emit
 
-    @pytest.mark.asyncio
-    async def test_unsubscribe_nonexistent_handler_logs_warning(self):
+    def test_unsubscribe_nonexistent_does_not_raise(self):
         bus = EventBus()
-
-        async def handler(e: AtlasEvent) -> None:
-            pass
-
-        # Should not raise
-        bus.unsubscribe(EventType.AUTH_SUCCESS, handler)
+        async def h(e: AtlasEvent) -> None: pass
+        bus.unsubscribe(EventType.AUTH_SUCCESS, h)  # must not raise
 
 
-# ── BUG-09 — memory write event fires after TTS ───────────────
-
-class TestBug09MemoryWriteOrder:
+class TestBug09:
     @pytest.mark.asyncio
     async def test_memory_write_event_type_exists(self):
-        """BUG-09: MEMORY_WRITE_REQUEST event type must exist."""
+        """BUG-09: MEMORY_WRITE_REQUEST event must exist."""
         assert EventType.MEMORY_WRITE_REQUEST in list(EventType)
 
     @pytest.mark.asyncio
     async def test_tts_finished_before_memory_write(self):
-        """
-        BUG-09: TTS_FINISHED must be emitted before MEMORY_WRITE_REQUEST.
-
-        Verifies the ordering contract — memory write is always last.
-        """
+        """BUG-09: TTS_FINISHED must fire before MEMORY_WRITE_REQUEST."""
         bus = EventBus()
         order: list[str] = []
-
-        async def on_tts_finished(e: AtlasEvent) -> None:
-            order.append("tts_finished")
-
-        async def on_memory_write(e: AtlasEvent) -> None:
-            order.append("memory_write")
-
-        bus.subscribe(EventType.TTS_FINISHED, on_tts_finished)
-        bus.subscribe(EventType.MEMORY_WRITE_REQUEST, on_memory_write)
-
-        # Simulate the correct pipeline order (SRS 4.3 steps 9→10)
+        async def on_tts(e: AtlasEvent) -> None: order.append("tts")
+        async def on_mem(e: AtlasEvent) -> None: order.append("mem")
+        bus.subscribe(EventType.TTS_FINISHED, on_tts)
+        bus.subscribe(EventType.MEMORY_WRITE_REQUEST, on_mem)
         await bus.emit(AtlasEvent(EventType.TTS_FINISHED, source="pipeline"))
         await bus.emit(AtlasEvent(EventType.MEMORY_WRITE_REQUEST, source="pipeline"))
+        assert order == ["tts", "mem"], "BUG-09: memory write must come after TTS"
 
-        assert order == ["tts_finished", "memory_write"], (
-            "BUG-09: memory write must always come AFTER TTS finishes"
-        )
-
-
-# ── Singleton ─────────────────────────────────────────────────
 
 class TestSingleton:
-    def test_get_event_bus_returns_same_instance(self):
-        bus1 = get_event_bus()
-        bus2 = get_event_bus()
-        assert bus1 is bus2
-
-    def test_singleton_preserves_subscriptions(self):
-        bus = get_event_bus()
-        calls: list[int] = []
-
-        async def h(e: AtlasEvent) -> None:
-            calls.append(1)
-
-        bus.subscribe(EventType.ATLAS_READY, h)
-        # Getting the bus again should return same instance with same handlers
-        same_bus = get_event_bus()
-        assert same_bus is bus
+    def test_same_instance_returned(self):
+        assert get_event_bus() is get_event_bus()

@@ -6,7 +6,7 @@ kokoro_voice_id: af_sky
 elevenlabs_voice_id: null
 gender: neutral
 accent: en-US
-style: "Clear, professional, calm — the default ATLAS voice"
+style: "Clear, professional, calm"
 language: English (US)
 language_code: en-US
 preview_text: "Hello, I am Atlas. How can I help you today?"

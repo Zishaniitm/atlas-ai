@@ -1,0 +1,42 @@
+# ATLAS Skill Manifest — controls which skills are enabled.
+# SRS: NFR-025 (auto-discovery)
+skills:
+  file_manager:
+    enabled: true
+    risk_level: high
+  app_launcher:
+    enabled: true
+    risk_level: medium
+  calculator:
+    enabled: true
+    risk_level: low
+  datetime:
+    enabled: true
+    risk_level: low
+  web_search:
+    enabled: true
+    risk_level: medium
+  wikipedia:
+    enabled: true
+    risk_level: low
+  weather:
+    enabled: true
+    risk_level: low
+  system_monitor:
+    enabled: true
+    risk_level: low
+  screenshot_ocr:
+    enabled: true
+    risk_level: medium
+  clipboard:
+    enabled: true
+    risk_level: low
+  volume_control:
+    enabled: true
+    risk_level: low
+  code_executor:
+    enabled: true
+    risk_level: critical
+  web_browsing:
+    enabled: true
+    risk_level: high

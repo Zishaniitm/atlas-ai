@@ -1,98 +1,55 @@
-"""
-Memory REST endpoints — /api/v1/memory.
-
-Phase 0 stubs — returns appropriate 503 until Phase 1 memory
-subsystem is built. Structure is final so HUD can be coded against it.
-
-SRS: FR-047–053 (memory system), FR-050 ('what do you remember'),
-     FR-051 (delete memory), NFR-044 (export + delete all data)
-"""
-
+"""Memory endpoints /api/v1/memory. SRS: FR-047–053, NFR-044"""
 from __future__ import annotations
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
-
 from atlas.utils.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter()
 
 
-class MemoryDeletePayload(BaseModel):
-    memory_id: str | None = None   # None = delete ALL
+class DeletePayload(BaseModel):
+    memory_id: str | None = None
 
 
 @router.get("/summary")
-async def memory_summary() -> dict[str, object]:
-    """
-    Return a summary of what ATLAS remembers about the user.
-
-    SRS: FR-050 ('what do you remember about me?')
-
-    Returns:
-        Dict with summary text and entry counts.
-
-    Note:
-        Full implementation in Phase 1 (memory subsystem).
-        Returns stub response in Phase 0.
-    """
-    # Phase 0 stub — Phase 1 wires this to MemoryManager
-    return {
-        "status": "phase0_stub",
-        "message": "Memory subsystem implemented in Phase 1.",
-        "conversation_count": 0,
-        "fact_count": 0,
-    }
+async def summary() -> dict[str, object]:
+    """SRS: FR-050"""
+    try:
+        from atlas.memory.manager import what_do_you_remember
+        text = await what_do_you_remember()
+        return {"status": "ok", "summary": text}
+    except Exception as exc:
+        return {"status": "error", "summary": str(exc)}
 
 
 @router.get("/search")
-async def search_memory(q: str) -> dict[str, object]:
-    """
-    Semantic search over episodic memory.
-
-    SRS: FR-049 (ChromaDB similarity search)
-
-    Args:
-        q: Natural language search query.
-    """
-    return {
-        "status": "phase0_stub",
-        "query": q,
-        "results": [],
-    }
+async def search(q: str) -> dict[str, object]:
+    """SRS: FR-049"""
+    try:
+        from atlas.memory.vector_store import search_memory
+        results = await search_memory(q)
+        return {"status": "ok", "query": q, "results": results}
+    except Exception as exc:
+        return {"status": "error", "results": [], "error": str(exc)}
 
 
 @router.delete("/")
-async def delete_memory(payload: MemoryDeletePayload) -> dict[str, str]:
-    """
-    Delete a specific memory entry or all memories.
-
-    SRS: FR-051 (user can delete memory), NFR-044 (delete all data)
-
-    Args:
-        payload: memory_id=None deletes all; otherwise deletes by ID.
-    """
-    if payload.memory_id is None:
-        logger.info("memory_delete_all_requested")
-        return {"status": "phase0_stub", "message": "Memory deletion implemented in Phase 1."}
-
-    return {
-        "status": "phase0_stub",
-        "message": f"Delete memory '{payload.memory_id}' implemented in Phase 1.",
-    }
+async def delete_memory(payload: DeletePayload) -> dict[str, object]:
+    """SRS: FR-051, NFR-044"""
+    try:
+        from atlas.memory.manager import delete_all_data
+        result = await delete_all_data()
+        return {"status": "ok", **result}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
 
 
 @router.get("/export")
 async def export_memory() -> dict[str, object]:
-    """
-    Export all memory data as a structured JSON payload.
-
-    SRS: NFR-044 (right to data portability — export all local data)
-    """
-    return {
-        "status": "phase0_stub",
-        "message": "Memory export implemented in Phase 1.",
-        "conversations": [],
-        "facts": [],
-    }
+    """SRS: NFR-044 (data portability)"""
+    try:
+        from atlas.memory.manager import export_all_data
+        return {"status": "ok", **(await export_all_data())}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
