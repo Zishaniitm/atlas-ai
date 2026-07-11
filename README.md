@@ -10,13 +10,19 @@
 
 ---
 
+## Current Status
+
+ATLAS is in **active, early-stage development (Phase 0 — Foundation)**, built solo and spec-first: every feature is implemented against a locked **SRS v2.0.0** document, with formal project instructions enforcing surgical edits, spec compliance, and low-bug throughput before anything ships. This README describes the full target system — features marked below by phase are the build plan, not all shipped yet. See [Roadmap](#roadmap) for what exists today versus what's planned.
+
+---
+
 ## What is ATLAS?
 
 ATLAS is a locally-installed AI assistant that lets you control your computer with natural language — the way Tony Stark talks to J.A.R.V.I.S. It runs on your machine, knows your voice, and only responds to you.
 
 - **Voice-first** — say *"Hey Atlas"* and speak naturally
 - **Biometric auth** — only the owner can give commands (voice print, face, fingerprint, PIN)
-- **Skills-based** — file manager, web search, code executor, weather, and 13 more built-in
+- **Skills-based** — file manager, web search, code executor, weather, and 13 more built-in (planned, Phase 1)
 - **Your choice of voice** — 8 built-in personas (Nova, Orion, Atlas, Aria, Sage, Rex, Zara, Echo)
 - **Fully local option** — runs 100% offline with Ollama + Kokoro TTS (no cloud needed)
 - **Cross-platform** — Windows 10/11, macOS 12+, Ubuntu 22.04+
@@ -33,7 +39,7 @@ ATLAS is a locally-installed AI assistant that lets you control your computer wi
 ### Install (development)
 
 ```bash
-git clone https://github.com/atlas-ai/atlas-ai.git
+git clone https://github.com/Zishaniitm/atlas-ai.git
 cd atlas-ai
 
 # Create virtual environment
@@ -97,16 +103,16 @@ Switch persona from the HUD settings panel at any time — no restart needed.
 atlas-ai/
 ├── atlas/                  # Main Python package
 │   ├── core/               # LLM client, config, event bus
-│   ├── voice/              # STT, TTS, wake word, pipeline, personas
-│   ├── skills/             # 13 core skills (Phase 1)
+│   ├── voice/               # STT, TTS, wake word, pipeline, personas
+│   ├── skills/               # 13 core skills (Phase 1)
 │   ├── security/auth/      # PIN, voice print, face, Hello, FIDO2
-│   ├── memory/             # SQLite + ChromaDB (Phase 1)
-│   ├── api/                # FastAPI internal server (localhost:7770)
-│   ├── ui/                 # PyQt6 HUD (Phase 1)
-│   └── telemetry/          # Crash reporter + Sentry (opt-in)
+│   ├── memory/               # SQLite + ChromaDB (Phase 1)
+│   ├── api/                 # FastAPI internal server (localhost:7770)
+│   ├── ui/                   # PyQt6 HUD (Phase 1)
+│   └── telemetry/           # Crash reporter + Sentry (opt-in)
 ├── config/defaults.yaml    # Default configuration
-├── tests/                  # Unit + integration + E2E tests
-└── installer/              # Platform installers (Phase 2)
+├── tests/                   # Unit + integration + E2E tests
+└── installer/                # Platform installers (Phase 2)
 ```
 
 ---
@@ -156,9 +162,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full skill authoring guide.
 
 ## Roadmap
 
+Every milestone below is scoped and gated by the project's SRS v2.0.0 — nothing merges without matching the locked spec, which keeps scope creep and regressions low even at solo-developer velocity.
+
 | Version | Status | Key Features |
 |---------|--------|-------------|
-| v0.1.0-alpha | 🔨 Building | Foundation — voice pipeline, PIN auth, event bus, FastAPI |
+| v0.1.0-alpha | 🔨 Building (current) | Foundation — voice pipeline, PIN auth, event bus, FastAPI |
 | v0.9.0-beta | 📋 Planned | 13 skills, HUD, memory, voice+face auth, Win+macOS builds |
 | v1.0.0 | 📋 Planned | Full installer, 20+ skills, 3-OS, crash reporter, docs |
 | v1.x.0 | 📋 Planned | Email, calendar, smart home, i18n, accessibility |
@@ -178,8 +186,15 @@ Read the full [Privacy Policy](PRIVACY.md).
 
 ---
 
+## Author
+
+Built and maintained solo by **Zishan**, B.S. Data Science student at IIT Madras.
+Portfolio: [zishan-portfolio-eight.vercel.app](https://zishan-portfolio-eight.vercel.app/)
+
+Issues, feedback, and early testers welcome — this is an actively evolving Phase 0 project, and the [Roadmap](#roadmap) above shows exactly where it's headed next.
+
+---
+
 ## License
 
 MIT License — see [LICENSE](LICENSE).
-
-Built with ❤️ by the ATLAS Core Team.
